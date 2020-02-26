@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sunhongwei.dao.GoodsDao">
+	<!-- 列表展示 -->
+	<select id="list" resultMap="GoodsMap">
+		select * from goods
+		<if test="tid!=null">
+			join gt on goods.id = gt.gid
+			<where>
+				<if test="tid!=null">
+					and goods.id in(select gt.gid from gt join goods_type on gt.tid = goods_type.tid where goods_type.tid = #{tid})
+				</if>
+				<if test="p1!=null">
+					and goods.price >=#{p1}
+				</if>
+				<if test="p2!=null">
+					and goods.price &lt;=#{p2}
+				</if>
+				<if test="name!=null and name!=''">
+					and goods.name like concat("%",#{name},"%")
+				</if>
+			</where>
+		</if>
+		<if test="bid!=null">
+			join gb on goods.id = gb.gid
+			<where>
+				<if test="bid!=null">
+					and goods.id in(select gb.gid from gb join goods_brand on gb.bid = goods_brand.bid where goods_brand.bid = #{bid})
+				</if>
+				<if test="p1!=null">
+					and goods.price >=#{p1}
+				</if>
+				<if test="p2!=null">
+					and goods.price &lt;=#{p2}
+				</if>
+				<if test="name!=null and name!=''">
+					and goods.name like concat("%",#{name},"%")
+				</if>
+			</where>
+		</if>
+	</select>
+	<resultMap type="Goods" id="GoodsMap">
+		<id column="id" property="id"/>
+		<result column="name" property="name"/>
+		<result column="ename" property="ename"/>
+		<result column="size" property="size"/>
+		<result column="price" property="price"/>
+		<result column="num" property="num"/>
+		<result column="biao" property="biao"/>
+		<result column="imgurl" property="imgurl"/>
+		<association property="type" javaType="Type" select="findType" column="id"></association>
+		<association property="brand" javaType="Brand" select="findBrand" column="id"></association>
+	</resultMap>
+	<select id="findType" resultType="Type">
+		select * from goods_type join gt on goods_type.tid = gt.tid where gt.gid = #{id}
+	</select>
+	<select id="findBrand" resultType="Brand">
+		select * from goods_brand join gb on goods_brand.bid = gb.bid where gb.gid = #{id}
+	</select>
+	
+	<!-- 查询种类 -->
+	<select id="selectType" resultType="Type">
+		select * from goods_type
+	</select>
+	
+	<!-- 查询品牌 -->
+	<select id="selectBrand" resultType="Brand">
+		select * from goods_brand
+	</select>
+	
+	<!-- 添加商品 -->
+	<insert id="addGoods" useGeneratedKeys="true" keyProperty="id">
+		insert into goods values(null,#{name},#{ename},#{size},#{price},#{num},#{biao},#{imgurl})
+	</insert>
+	<!-- 添加商品种类中间表 -->
+	<insert id="addGt">
+		insert into gt values(#{id},#{tid})
+	</insert>
+	<!-- 添加商品品牌中间表 -->
+	<insert id="addGb">
+		insert into gb values(#{id},#{bid})
+	</insert>
+</mapper>
